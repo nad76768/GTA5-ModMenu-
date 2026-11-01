@@ -1,0 +1,6 @@
+# Zip di ScriptHookV / ScriptHookVDotNet: non ridistribuibili
+download/*.zip
+*.log
+*.asi
+*.dll
+_TeoParkour_OFF/

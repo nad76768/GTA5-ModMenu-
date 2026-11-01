@@ -1,0 +1,36 @@
+TEOPARKOUR - mod menu per GTA V (SOLO MODALITA' STORIA)
+=======================================================
+
+INSTALLAZIONE
+1. Scarica questi zip e mettili nella cartella "download" (non serve estrarli):
+   - ScriptHookV ............ http://www.dev-c.com/gtav/scripthookv/
+   - ScriptHookVDotNet ...... GTA V Enhanced: https://github.com/Chiheb-Bacha/scripthookvdotnetenhanced/releases
+                              GTA V Legacy:   https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases
+   Controlla che ScriptHookV supporti l'ultimo aggiornamento del gioco.
+2. Chiudi GTA V.
+3. Doppio clic su Installa.bat, conferma la richiesta di Windows e premi "Installa".
+
+BATTLEYE (necessario)
+- Steam: Proprieta' del gioco -> Opzioni di avvio -> scrivi  -nobattleye
+- Rockstar Games Launcher: Impostazioni -> togli la spunta a BattlEye
+
+COMANDI
+F7 ........................ apri/chiudi il menu
+Frecce su/giu' ............ scorri
+Frecce sinistra/destra .... cambia valore (liste, ON/OFF)
+Invio ..................... seleziona
+Backspace ................. indietro
+F8 ........................ telecamera libera (WASD, mouse, Spazio/Ctrl, Shift veloce)
+
+MOD ON / MOD OFF
+- Mod OFF.bat: sposta i file delle mod fuori dalla cartella di GTA (per tornare online).
+- Mod ON.bat:  li rimette a posto.
+  Se il gioco non e' in G:\SteamLibrary\steamapps\common\Grand Theft Auto V Enhanced,
+  apri i due .bat con il Blocco note e correggi la riga "set GTA=".
+
+NOTE
+- Il menu si spegne da solo se rileva una sessione online.
+- Dopo ogni aggiornamento di GTA V serve la nuova versione di ScriptHookV.
+- Se cambi skin, torna al personaggio originale prima di salvare o fare missioni.
+- Le posizioni salvate sono in GTA V\scripts\MaxMenu_posizioni.txt
+- Se il menu non compare, guarda ScriptHookVDotNet.log nella cartella di GTA V.
