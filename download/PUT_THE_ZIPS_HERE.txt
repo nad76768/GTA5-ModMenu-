@@ -1,0 +1,1 @@
+Put the downloaded ScriptHookV and ScriptHookVDotNet zips here (do not extract them).

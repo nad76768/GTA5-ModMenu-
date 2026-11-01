@@ -1,6 +1,6 @@
-﻿// TeoParkour - Mod menu per GTA V MODALITÀ STORIA (offline)
-// Requisiti: ScriptHookV + ScriptHookVDotNet (Enhanced per GTA V Enhanced). Nessun'altra libreria.
-// Tasti: F7 = menu, F8 = telecamera libera
+﻿// TeoParkour - Mod menu for GTA V STORY MODE (offline)
+// Requires: ScriptHookV + ScriptHookVDotNet (the Enhanced build for GTA V Enhanced). No other libraries.
+// Keys: F7 = menu, F8 = free camera
 
 using System;
 using System.Collections.Generic;
@@ -15,21 +15,21 @@ using GTA.Native;
 public class MaxMenu : Script
 {
     readonly ObjectPool pool = new ObjectPool();
-    readonly NativeMenu main = new NativeMenu("TeoParkour", "Modalità Storia");
+    readonly NativeMenu main = new NativeMenu("TeoParkour", "Story Mode");
     readonly List<Entity> spawned = new List<Entity>();
     readonly Random rnd = new Random();
 
-    // Giocatore
+    // Player
     NativeCheckboxItem godMode, neverWanted, infAmmo, superJump, fastRun, fastSwim,
                        invisible, noRagdoll, infStamina, noclip;
-    // Veicolo
+    // Vehicle
     NativeCheckboxItem vehGod, spawnInside, flyCar;
     // ESP
     NativeCheckboxItem espPeds, espVehicles, espLines;
-    // Mondo / video
+    // World / video
     NativeCheckboxItem freezeTime, hideHud;
 
-    // Telecamera libera
+    // Free camera
     Camera freeCam;
     float camPitch, camYaw, camFov = 50f;
 
@@ -37,7 +37,7 @@ public class MaxMenu : Script
     Model originalModel;
     RelationshipGroup gangA, gangB;
 
-    // Posizioni salvate
+    // Saved positions
     NativeMenu savedMenu;
     bool rebuildSaved = true;
     string SavedFile { get { return Path.Combine(BaseDirectory, "MaxMenu_posizioni.txt"); } }
@@ -80,33 +80,33 @@ public class MaxMenu : Script
 
     static bool IsOnline() { return Function.Call<bool>(Hash.NETWORK_IS_SESSION_STARTED); }
 
-    // ================================================================ GIOCATORE
+    // ================================================================ PLAYER
     void BuildPlayerMenu()
     {
-        var m = Sub(main, "Giocatore", "Opzioni giocatore");
-        m.Add(godMode = new NativeCheckboxItem("Invincibilità", false));
-        m.Add(neverWanted = new NativeCheckboxItem("Mai ricercato", false));
-        m.Add(infAmmo = new NativeCheckboxItem("Munizioni infinite", false));
-        m.Add(superJump = new NativeCheckboxItem("Super salto", false));
-        m.Add(fastRun = new NativeCheckboxItem("Corsa veloce", false));
-        m.Add(fastSwim = new NativeCheckboxItem("Nuoto veloce", false));
-        m.Add(invisible = new NativeCheckboxItem("Invisibile", false));
-        m.Add(noRagdoll = new NativeCheckboxItem("Niente ragdoll", false));
-        m.Add(infStamina = new NativeCheckboxItem("Stamina infinita", false));
-        m.Add(noclip = new NativeCheckboxItem("Noclip (attraversa i muri)", false));
+        var m = Sub(main, "Player", "Player options");
+        m.Add(godMode = new NativeCheckboxItem("God mode", false));
+        m.Add(neverWanted = new NativeCheckboxItem("Never wanted", false));
+        m.Add(infAmmo = new NativeCheckboxItem("Infinite ammo", false));
+        m.Add(superJump = new NativeCheckboxItem("Super jump", false));
+        m.Add(fastRun = new NativeCheckboxItem("Fast run", false));
+        m.Add(fastSwim = new NativeCheckboxItem("Fast swim", false));
+        m.Add(invisible = new NativeCheckboxItem("Invisible", false));
+        m.Add(noRagdoll = new NativeCheckboxItem("No ragdoll", false));
+        m.Add(infStamina = new NativeCheckboxItem("Infinite stamina", false));
+        m.Add(noclip = new NativeCheckboxItem("Noclip (walk through walls)", false));
         noclip.CheckboxChanged += (s, e) => { if (!noclip.Checked) ReleasePed(); };
 
-        var heal = new NativeItem("Cura e armatura al massimo");
+        var heal = new NativeItem("Full health and armor");
         heal.Activated += (s, e) =>
         {
             var p = Game.Player.Character;
             p.Health = p.MaxHealth;
             p.Armor = 100;
-            Notify("Curato");
+            Notify("Healed");
         };
         m.Add(heal);
 
-        var wanted = new NativeListItem<int>("Imposta livello ricercato", 0, 1, 2, 3, 4, 5);
+        var wanted = new NativeListItem<int>("Set wanted level", 0, 1, 2, 3, 4, 5);
         wanted.Activated += (s, e) =>
         {
             if (wanted.SelectedItem > 0) neverWanted.Checked = false;
@@ -125,7 +125,7 @@ public class MaxMenu : Script
     // ================================================================ SKIN
     void BuildSkinMenu()
     {
-        var m = Sub(main, "Cambia aspetto", "Skin del personaggio");
+        var m = Sub(main, "Change look", "Character skin");
         var skins = new NativeListItem<string>("Skin",
             "player_zero", "player_one", "player_two",
             "a_m_y_hipster_01", "a_f_y_hipster_01", "a_m_y_beach_01", "a_f_y_beach_01",
@@ -134,21 +134,21 @@ public class MaxMenu : Script
         skins.Activated += (s, e) => ChangeSkin(skins.SelectedItem);
         m.Add(skins);
 
-        var byName = new NativeItem("Skin per nome...");
+        var byName = new NativeItem("Skin by name...");
         byName.Activated += (s, e) => { var n = GetInput(30); if (!string.IsNullOrEmpty(n)) ChangeSkin(n); };
         m.Add(byName);
 
-        var back = new NativeItem("Torna al personaggio originale");
+        var back = new NativeItem("Back to original character");
         back.Activated += (s, e) =>
         {
-            if (originalModel == null) { Notify("Non hai cambiato skin"); return; }
+            if (originalModel == null) { Notify("You haven't changed skin"); return; }
             if (originalModel.Request(2000)) Game.Player.ChangeModel(originalModel);
             Function.Call(Hash.SET_PED_DEFAULT_COMPONENT_VARIATION, Game.Player.Character);
             originalModel = null;
         };
         m.Add(back);
 
-        m.Add(new NativeItem("Nota", "Torna al personaggio originale prima di salvare o fare missioni."));
+        m.Add(new NativeItem("Note", "Switch back to the original character before saving or playing missions."));
     }
 
     void ChangeSkin(string name)
@@ -161,15 +161,15 @@ public class MaxMenu : Script
         model.MarkAsNoLongerNeeded();
     }
 
-    // ================================================================ SOLDI
+    // ================================================================ MONEY
     void BuildMoneyMenu()
     {
-        var m = Sub(main, "Soldi", "Soldi del personaggio");
-        var amounts = new NativeListItem<int>("Aggiungi", 100000, 1000000, 10000000, 100000000);
+        var m = Sub(main, "Money", "Character money");
+        var amounts = new NativeListItem<int>("Add", 100000, 1000000, 10000000, 100000000);
         amounts.Activated += (s, e) => AddMoney(amounts.SelectedItem);
         m.Add(amounts);
 
-        var custom = new NativeItem("Importo personalizzato");
+        var custom = new NativeItem("Custom amount");
         custom.Activated += (s, e) =>
         {
             int v;
@@ -177,7 +177,7 @@ public class MaxMenu : Script
         };
         m.Add(custom);
 
-        var reset = new NativeItem("Azzera soldi");
+        var reset = new NativeItem("Reset money");
         reset.Activated += (s, e) => SetMoney(0);
         m.Add(reset);
     }
@@ -203,41 +203,41 @@ public class MaxMenu : Script
     void SetMoney(long value)
     {
         string stat = MoneyStat();
-        if (stat == null) { Notify("Funziona solo con Michael, Franklin o Trevor"); return; }
+        if (stat == null) { Notify("Only works with Michael, Franklin or Trevor"); return; }
         value = Math.Max(0, Math.Min(int.MaxValue, value));
         Function.Call(Hash.STAT_SET_INT, Game.GenerateHash(stat), (int)value, true);
-        Notify("Soldi: $" + value.ToString("N0"));
+        Notify("Money: $" + value.ToString("N0"));
     }
 
     void AddMoney(int amount)
     {
         string stat = MoneyStat();
-        if (stat == null) { Notify("Funziona solo con Michael, Franklin o Trevor"); return; }
+        if (stat == null) { Notify("Only works with Michael, Franklin or Trevor"); return; }
         SetMoney((long)GetMoney(stat) + amount);
     }
 
     // ================================================================ TELEPORT
     void BuildTeleportMenu()
     {
-        var m = Sub(main, "Teleport", "Teletrasporto");
+        var m = Sub(main, "Teleport", "Teleport");
 
-        var wp = new NativeItem("Al waypoint della mappa");
+        var wp = new NativeItem("To map waypoint");
         wp.Activated += (s, e) => TeleportToWaypoint();
         m.Add(wp);
 
-        savedMenu = Sub(m, "Le mie posizioni", "Posizioni salvate");
+        savedMenu = Sub(m, "My positions", "Saved positions");
         savedMenu.Shown += (s, e) => rebuildSaved = true;
 
         var places = new Dictionary<string, Vector3>
         {
-            { "Casa di Michael", new Vector3(-852.4f, 160.0f, 65.6f) },
-            { "Casa di Franklin", new Vector3(7.9f, 548.1f, 175.5f) },
-            { "Roulotte di Trevor", new Vector3(1985.9f, 3812.2f, 32.2f) },
-            { "Monte Chiliad", new Vector3(501.8f, 5604.5f, 797.9f) },
-            { "Tetto Maze Bank", new Vector3(-75.0f, -818.0f, 326.2f) },
-            { "Aeroporto LS", new Vector3(-1336.0f, -3044.0f, 13.9f) },
+            { "Michael's house", new Vector3(-852.4f, 160.0f, 65.6f) },
+            { "Franklin's house", new Vector3(7.9f, 548.1f, 175.5f) },
+            { "Trevor's trailer", new Vector3(1985.9f, 3812.2f, 32.2f) },
+            { "Mount Chiliad", new Vector3(501.8f, 5604.5f, 797.9f) },
+            { "Maze Bank roof", new Vector3(-75.0f, -818.0f, 326.2f) },
+            { "LS Airport", new Vector3(-1336.0f, -3044.0f, 13.9f) },
             { "Fort Zancudo", new Vector3(-2047.4f, 3132.1f, 32.8f) },
-            { "Molo di Del Perro", new Vector3(-1850.1f, -1231.7f, 13.0f) },
+            { "Del Perro Pier", new Vector3(-1850.1f, -1231.7f, 13.0f) },
         };
         foreach (var kv in places)
         {
@@ -252,7 +252,7 @@ public class MaxMenu : Script
     {
         savedMenu.Clear();
 
-        var save = new NativeItem("+ Salva posizione attuale");
+        var save = new NativeItem("+ Save current position");
         save.Activated += (s, e) =>
         {
             string name = GetInput(30);
@@ -260,8 +260,8 @@ public class MaxMenu : Script
             Vector3 p = PlayerEntity().Position;
             string line = string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}",
                                         name.Replace("|", " "), p.X, p.Y, p.Z);
-            try { File.AppendAllText(SavedFile, line + Environment.NewLine); Notify("Salvata: " + name); }
-            catch { Notify("Impossibile salvare la posizione"); }
+            try { File.AppendAllText(SavedFile, line + Environment.NewLine); Notify("Saved: " + name); }
+            catch { Notify("Could not save the position"); }
             rebuildSaved = true;
         };
         savedMenu.Add(save);
@@ -292,7 +292,7 @@ public class MaxMenu : Script
 
     void TeleportToWaypoint()
     {
-        if (!Game.IsWaypointActive) { Notify("Nessun waypoint impostato"); return; }
+        if (!Game.IsWaypointActive) { Notify("No waypoint set"); return; }
         Vector3 wp = World.WaypointPosition;
         Entity ent = PlayerEntity();
         for (float z = 1000f; z >= 0f; z -= 50f)
@@ -309,23 +309,23 @@ public class MaxMenu : Script
         ent.Position = new Vector3(wp.X, wp.Y, 100f);
     }
 
-    // ================================================================ VEICOLO
+    // ================================================================ VEHICLE
     void BuildVehicleMenu()
     {
-        var m = Sub(main, "Veicolo", "Veicolo attuale");
-        m.Add(vehGod = new NativeCheckboxItem("Veicolo invincibile", false));
-        m.Add(flyCar = new NativeCheckboxItem("Auto volante", "Accelera/frena per volare dove guarda la telecamera.", false));
+        var m = Sub(main, "Vehicle", "Current vehicle");
+        m.Add(vehGod = new NativeCheckboxItem("Invincible vehicle", false));
+        m.Add(flyCar = new NativeCheckboxItem("Flying car", "Accelerate/brake to fly where the camera is looking.", false));
         flyCar.CheckboxChanged += (s, e) => { if (!flyCar.Checked) StopFlying(); };
 
-        var repair = new NativeItem("Ripara");
+        var repair = new NativeItem("Repair");
         repair.Activated += (s, e) => { var v = CurrentVehicle(); if (v != null) v.Repair(); };
         m.Add(repair);
 
-        var flip = new NativeItem("Raddrizza");
+        var flip = new NativeItem("Flip upright");
         flip.Activated += (s, e) => { var v = CurrentVehicle(); if (v != null) v.PlaceOnGround(); };
         m.Add(flip);
 
-        var maxUp = new NativeItem("Potenziamenti al massimo");
+        var maxUp = new NativeItem("Max upgrades");
         maxUp.Activated += (s, e) =>
         {
             var v = CurrentVehicle();
@@ -337,11 +337,11 @@ public class MaxMenu : Script
                 if (count > 0) Function.Call(Hash.SET_VEHICLE_MOD, v, type, count - 1, false);
             }
             Function.Call(Hash.TOGGLE_VEHICLE_MOD, v, 18, true);
-            Notify("Veicolo potenziato");
+            Notify("Vehicle upgraded");
         };
         m.Add(maxUp);
 
-        var color = new NativeItem("Colore casuale");
+        var color = new NativeItem("Random color");
         color.Activated += (s, e) =>
         {
             var v = CurrentVehicle();
@@ -353,7 +353,7 @@ public class MaxMenu : Script
     Vehicle CurrentVehicle()
     {
         var v = Game.Player.Character.CurrentVehicle;
-        if (v == null) Notify("Non sei in un veicolo");
+        if (v == null) Notify("You are not in a vehicle");
         return v;
     }
 
@@ -367,27 +367,27 @@ public class MaxMenu : Script
     // ================================================================ SPAWN
     void BuildSpawnMenu()
     {
-        var m = Sub(main, "Spawn", "Veicoli, persone, oggetti");
-        m.Add(spawnInside = new NativeCheckboxItem("Entra nel veicolo spawnato", true));
+        var m = Sub(main, "Spawn", "Vehicles, people, objects");
+        m.Add(spawnInside = new NativeCheckboxItem("Get into spawned vehicle", true));
 
-        var cars = new NativeListItem<string>("Veicolo",
+        var cars = new NativeListItem<string>("Vehicle",
             "adder", "zentorno", "t20", "entityxf", "kuruma", "insurgent", "sanchez", "bati",
             "police", "firetruk", "ambulance", "bus", "rhino", "buzzard2", "frogger",
             "lazer", "hydra", "besra", "jetmax", "seashark");
         cars.Activated += (s, e) => SpawnVehicle(cars.SelectedItem);
         m.Add(cars);
 
-        var carByName = new NativeItem("Veicolo per nome...");
+        var carByName = new NativeItem("Vehicle by name...");
         carByName.Activated += (s, e) => { var n = GetInput(30); if (!string.IsNullOrEmpty(n)) SpawnVehicle(n); };
         m.Add(carByName);
 
-        var peds = new NativeListItem<string>("Guardia del corpo",
+        var peds = new NativeListItem<string>("Bodyguard",
             "s_m_y_swat_01", "s_m_m_marine_01", "s_m_y_cop_01", "s_m_m_security_01",
             "u_m_y_zombie_01", "a_c_chop");
         peds.Activated += (s, e) => SpawnBodyguard(peds.SelectedItem);
         m.Add(peds);
 
-        var pedByName = new NativeItem("Persona per nome...");
+        var pedByName = new NativeItem("Person by name...");
         pedByName.Activated += (s, e) =>
         {
             var n = GetInput(30);
@@ -395,17 +395,17 @@ public class MaxMenu : Script
         };
         m.Add(pedByName);
 
-        var props = new NativeListItem<string>("Oggetto",
+        var props = new NativeListItem<string>("Object",
             "prop_mp_ramp_03", "prop_container_01a", "prop_dumpster_01a",
             "prop_rub_carwreck_3", "prop_roadcone02a");
         props.Activated += (s, e) => SpawnProp(props.SelectedItem);
         m.Add(props);
 
-        var propByName = new NativeItem("Oggetto per nome...");
+        var propByName = new NativeItem("Object by name...");
         propByName.Activated += (s, e) => { var n = GetInput(40); if (!string.IsNullOrEmpty(n)) SpawnProp(n); };
         m.Add(propByName);
 
-        var clear = new NativeItem("Elimina tutto ciò che hai spawnato");
+        var clear = new NativeItem("Delete everything you spawned");
         clear.Activated += (s, e) => ClearSpawned();
         m.Add(clear);
     }
@@ -414,7 +414,7 @@ public class MaxMenu : Script
     {
         foreach (var ent in spawned) if (ent != null && ent.Exists()) ent.Delete();
         spawned.Clear();
-        Notify("Spawn eliminati");
+        Notify("Spawned entities deleted");
     }
 
     Model LoadModel(string name)
@@ -422,7 +422,7 @@ public class MaxMenu : Script
         var model = new Model(name);
         if (!model.IsInCdImage || !model.Request(2000))
         {
-            Notify("Modello non trovato: " + name);
+            Notify("Model not found: " + name);
             return null;
         }
         return model;
@@ -474,30 +474,30 @@ public class MaxMenu : Script
         spawned.Add(prop);
     }
 
-    // ================================================================ SCENE
+    // ================================================================ SCENES
     void BuildScenesMenu()
     {
-        var m = Sub(main, "Scene", "Scene pronte per i video");
+        var m = Sub(main, "Scenes", "Ready-made scenes for videos");
 
-        var party = new NativeItem("Festa (gente che balla intorno a te)");
+        var party = new NativeItem("Party (people dancing around you)");
         party.Activated += (s, e) => SpawnCircle(8, 6f, "WORLD_HUMAN_PARTYING",
             "a_f_y_beach_01", "a_m_y_beach_01", "a_f_y_hipster_01", "a_m_y_hipster_01");
         m.Add(party);
 
-        var crowd = new NativeItem("Folla che applaude");
+        var crowd = new NativeItem("Cheering crowd");
         crowd.Activated += (s, e) => SpawnCircle(10, 8f, "WORLD_HUMAN_CHEERING",
             "a_m_y_hipster_01", "a_f_y_hipster_01", "a_m_y_beach_01", "a_f_y_beach_01");
         m.Add(crowd);
 
-        var gang = new NativeItem("Guerra tra gang");
+        var gang = new NativeItem("Gang war");
         gang.Activated += (s, e) => GangWar();
         m.Add(gang);
 
-        var chase = new NativeItem("Inseguimento della polizia (3 stelle)");
+        var chase = new NativeItem("Police chase (3 stars)");
         chase.Activated += (s, e) => { neverWanted.Checked = false; Game.Player.WantedLevel = 3; };
         m.Add(chase);
 
-        var clear = new NativeItem("Rimuovi la scena");
+        var clear = new NativeItem("Remove the scene");
         clear.Activated += (s, e) => ClearSpawned();
         m.Add(clear);
     }
@@ -528,44 +528,44 @@ public class MaxMenu : Script
         }
     }
 
-    // ================================================================ ARMI
+    // ================================================================ WEAPONS
     void BuildWeaponsMenu()
     {
-        var m = Sub(main, "Armi", "Armi");
-        var all = new NativeItem("Dammi tutte le armi");
+        var m = Sub(main, "Weapons", "Weapons");
+        var all = new NativeItem("Give all weapons");
         all.Activated += (s, e) =>
         {
             var p = Game.Player.Character;
             foreach (WeaponHash w in Enum.GetValues(typeof(WeaponHash)))
                 if (w != WeaponHash.Unarmed) p.Weapons.Give(w, 9999, false, true);
-            Notify("Tutte le armi ottenute");
+            Notify("All weapons given");
         };
         m.Add(all);
 
-        var remove = new NativeItem("Togli tutte le armi");
+        var remove = new NativeItem("Remove all weapons");
         remove.Activated += (s, e) => Game.Player.Character.Weapons.RemoveAll();
         m.Add(remove);
     }
 
-    // ================================================================ MONDO
+    // ================================================================ WORLD
     void BuildWorldMenu()
     {
-        var m = Sub(main, "Mondo", "Ora e meteo");
+        var m = Sub(main, "World", "Time and weather");
 
-        var hour = new NativeListItem<int>("Ora", 0, 3, 6, 9, 12, 15, 18, 21);
+        var hour = new NativeListItem<int>("Hour", 0, 3, 6, 9, 12, 15, 18, 21);
         hour.Activated += (s, e) => Function.Call(Hash.SET_CLOCK_TIME, hour.SelectedItem, 0, 0);
         m.Add(hour);
 
-        m.Add(freezeTime = new NativeCheckboxItem("Blocca orario", false));
+        m.Add(freezeTime = new NativeCheckboxItem("Freeze time", false));
         freezeTime.CheckboxChanged += (s, e) => Function.Call(Hash.PAUSE_CLOCK, freezeTime.Checked);
 
-        var weather = new NativeListItem<string>("Meteo",
+        var weather = new NativeListItem<string>("Weather",
             "EXTRASUNNY", "CLEAR", "CLOUDS", "SMOG", "FOGGY", "OVERCAST", "RAIN",
             "THUNDER", "CLEARING", "SNOW", "BLIZZARD", "SNOWLIGHT", "XMAS", "HALLOWEEN");
         weather.Activated += (s, e) => Function.Call(Hash.SET_WEATHER_TYPE_NOW_PERSIST, weather.SelectedItem);
         m.Add(weather);
 
-        var clearArea = new NativeItem("Svuota la zona (persone e veicoli)");
+        var clearArea = new NativeItem("Clear the area (people and vehicles)");
         clearArea.Activated += (s, e) =>
         {
             var pos = Game.Player.Character.Position;
@@ -577,14 +577,14 @@ public class MaxMenu : Script
     // ================================================================ VIDEO
     void BuildVideoMenu()
     {
-        var m = Sub(main, "Video", "Strumenti per le riprese");
+        var m = Sub(main, "Video", "Recording tools");
 
-        var cam = new NativeItem("Telecamera libera (F8)",
-            "WASD muovi, mouse guarda, Spazio su, Ctrl giù, Shift veloce. F7 per il menu.");
+        var cam = new NativeItem("Free camera (F8)",
+            "WASD move, mouse look, Space up, Ctrl down, Shift fast. F7 for the menu.");
         cam.Activated += (s, e) => ToggleFreeCam();
         m.Add(cam);
 
-        var fov = new NativeListItem<float>("Zoom telecamera (FOV)", 50f, 30f, 20f, 10f, 70f, 90f);
+        var fov = new NativeListItem<float>("Camera zoom (FOV)", 50f, 30f, 20f, 10f, 70f, 90f);
         fov.ItemChanged += (s, e) =>
         {
             camFov = fov.SelectedItem;
@@ -592,11 +592,11 @@ public class MaxMenu : Script
         };
         m.Add(fov);
 
-        var slow = new NativeListItem<float>("Velocità del tempo", 1f, 0.75f, 0.5f, 0.25f, 0.1f);
+        var slow = new NativeListItem<float>("Time speed", 1f, 0.75f, 0.5f, 0.25f, 0.1f);
         slow.ItemChanged += (s, e) => Game.TimeScale = slow.SelectedItem;
         m.Add(slow);
 
-        m.Add(hideHud = new NativeCheckboxItem("Nascondi HUD e minimappa", false));
+        m.Add(hideHud = new NativeCheckboxItem("Hide HUD and minimap", false));
     }
 
     void ToggleFreeCam()
@@ -640,7 +640,7 @@ public class MaxMenu : Script
 
     void UpdateFreeCam()
     {
-        if (pool.AreAnyVisible) return; // con il menu aperto la telecamera resta ferma
+        if (pool.AreAnyVisible) return; // the camera stays still while the menu is open
 
         Function.Call(Hash.DISABLE_ALL_CONTROL_ACTIONS, 0);
 
@@ -659,27 +659,27 @@ public class MaxMenu : Script
         Function.Call(Hash.SET_FOCUS_POS_AND_VEL, pos.X, pos.Y, pos.Z, 0f, 0f, 0f);
     }
 
-    // ================================================================ ASPETTO MENU
+    // ================================================================ MENU LOOK
     void BuildLookMenu()
     {
-        var m = Sub(main, "Aspetto menu", "Banner e ritratto");
+        var m = Sub(main, "Menu look", "Banner and portrait");
 
-        var style = new NativeListItem<string>("Banner", "Gioco (menu M)", "Foglie", "Verde");
+        var style = new NativeListItem<string>("Banner", "Game (M menu)", "Leaves", "Green");
         style.ItemChanged += (s, e) =>
         {
-            pool.BannerStyle = style.SelectedItem == "Gioco (menu M)" ? 0 : (style.SelectedItem == "Foglie" ? 1 : 2);
+            pool.BannerStyle = style.SelectedItem == "Game (M menu)" ? 0 : (style.SelectedItem == "Leaves" ? 1 : 2);
         };
         m.Add(style);
 
-        var tint = new NativeCheckboxItem("Colora di verde il banner del gioco", false);
+        var tint = new NativeCheckboxItem("Tint the game banner green", false);
         tint.CheckboxChanged += (s, e) => pool.TintGreen = tint.Checked;
         m.Add(tint);
 
-        var portrait = new NativeListItem<string>("Ritratto", "Franklin", "Michael", "Trevor", "Lamar", "Chop", "Nessuno");
+        var portrait = new NativeListItem<string>("Portrait", "Franklin", "Michael", "Trevor", "Lamar", "Chop", "None");
         portrait.ItemChanged += (s, e) =>
         {
             string v = portrait.SelectedItem;
-            pool.Portrait = v == "Nessuno" ? null : "char_" + v.ToLower();
+            pool.Portrait = v == "None" ? null : "char_" + v.ToLower();
         };
         m.Add(portrait);
     }
@@ -687,10 +687,10 @@ public class MaxMenu : Script
     // ================================================================ ESP
     void BuildEspMenu()
     {
-        var m = Sub(main, "ESP", "Evidenzia entità vicine");
-        m.Add(espPeds = new NativeCheckboxItem("Persone (vita, distanza)", false));
-        m.Add(espVehicles = new NativeCheckboxItem("Veicoli", false));
-        m.Add(espLines = new NativeCheckboxItem("Linee dal giocatore", false));
+        var m = Sub(main, "ESP", "Highlight nearby entities");
+        m.Add(espPeds = new NativeCheckboxItem("People (health, distance)", false));
+        m.Add(espVehicles = new NativeCheckboxItem("Vehicles", false));
+        m.Add(espLines = new NativeCheckboxItem("Lines from player", false));
     }
 
     void DrawEsp()
@@ -705,7 +705,7 @@ public class MaxMenu : Script
                 if (ped == null || !ped.Exists() || ped.IsDead) continue;
                 Color c = ped.IsInCombat ? Color.Red : Color.White;
                 float dist = Vector3.Distance(me, ped.Position);
-                DrawLabel(ped.Position + new Vector3(0f, 0f, 1.1f), "Vita " + ped.Health + "  " + dist.ToString("0") + "m", c);
+                DrawLabel(ped.Position + new Vector3(0f, 0f, 1.1f), "HP " + ped.Health + "  " + dist.ToString("0") + "m", c);
                 if (espLines.Checked) DrawLine(me, ped.Position, c);
             }
         }
@@ -766,7 +766,7 @@ public class MaxMenu : Script
     // ================================================================ LOOP
     void OnTick(object sender, EventArgs e)
     {
-        // Sicurezza: niente di tutto questo in una sessione online
+        // Safety: none of this runs in an online session
         if (IsOnline())
         {
             pool.HideAll();
@@ -795,7 +795,7 @@ public class MaxMenu : Script
         var veh = ped.CurrentVehicle;
         if (veh != null) veh.IsInvincible = vehGod.Checked;
 
-        // Auto volante
+        // Flying car
         if (flyCar.Checked && veh != null && veh.Driver == ped)
         {
             if (flyVeh != veh) { StopFlying(); flyVeh = veh; }
@@ -850,9 +850,9 @@ public class MaxMenu : Script
 }
 
 // =====================================================================
-// Mini sistema di menu integrato (nessuna libreria esterna richiesta)
-// Comandi: Frecce su/giu = scorri, Frecce sx/dx = cambia valore,
-//          Invio = seleziona, Backspace = indietro
+// Built-in mini menu system (no external library needed)
+// Controls: Up/Down arrows = scroll, Left/Right arrows = change value,
+//           Enter = select, Backspace = back
 // =====================================================================
 
 public class NativeItem
@@ -971,7 +971,7 @@ public class ObjectPool
     const float X = 30f, Y = 40f, W = 400f, HeaderH = 80f, SubH = 30f, ItemH = 32f;
     const int MaxVisible = 12;
 
-    // Tema TeoParkour
+    // TeoParkour theme
     static readonly Color Lime = Color.FromArgb(255, 50, 255, 50);
     static readonly Color LimeBg = Color.FromArgb(240, 50, 230, 50);
     static readonly Color Panel = Color.FromArgb(225, 0, 0, 0);
@@ -981,10 +981,10 @@ public class ObjectPool
     GTA.UI.CustomSprite banner;
     bool bannerFailed;
 
-    // 0 = banner del gioco (menu interazione "M"), 1 = foglie (immagine personalizzata), 2 = verde pieno
+    // 0 = game banner (interaction menu "M"), 1 = leaves (custom image), 2 = plain green
     public int BannerStyle = 0;
     public bool TintGreen = false;
-    // Ritratto del personaggio (texture del gioco), null = nessuno
+    // Character portrait (game texture), null = none
     public string Portrait = "char_franklin";
     readonly Dictionary<string, GTA.UI.Sprite> sprites = new Dictionary<string, GTA.UI.Sprite>();
 
@@ -1048,7 +1048,7 @@ public class ObjectPool
 
     public void Process()
     {
-        // Aggiorna lo stato dei tasti anche a menu chiuso, così non scattano pressioni "vecchie"
+        // Track key state even while the menu is closed, so stale presses never fire
         bool up = Pressed(Keys.Up, true) | Pressed(Keys.NumPad8, true);
         bool down = Pressed(Keys.Down, true) | Pressed(Keys.NumPad2, true);
         bool left = Pressed(Keys.Left, true) | Pressed(Keys.NumPad4, true);
@@ -1058,7 +1058,7 @@ public class ObjectPool
 
         if (stack.Count == 0) return;
 
-        // Evita che il telefono e altri comandi si attivino mentre usi il menu
+        // Stop the phone and other controls from firing while the menu is in use
         foreach (int c in new int[] { 27, 172, 173, 174, 175, 176, 177, 201, 202, 37, 19, 85, 80 }) Disable(c);
 
         NativeMenu menu = stack.Peek();
@@ -1095,7 +1095,7 @@ public class ObjectPool
 
     void DrawBanner()
     {
-        // Sfondo verde di riserva (resta visibile se un'immagine non si carica)
+        // Fallback green background (stays visible if an image fails to load)
         Rect(X, Y, W, HeaderH, FranklinGreen);
 
         if (BannerStyle == 0)
@@ -1118,7 +1118,7 @@ public class ObjectPool
             catch { bannerFailed = true; }
         }
 
-        // Ritratto del personaggio a sinistra
+        // Character portrait on the left
         if (!string.IsNullOrEmpty(Portrait))
         {
             float ps = HeaderH - 14f;
@@ -1126,7 +1126,7 @@ public class ObjectPool
             GameSprite(Portrait, Portrait, new SizeF(ps, ps), new PointF(X + 7f, Y + 7f)).Draw();
         }
 
-        // Linea lime sotto il banner
+        // Lime line under the banner
         Rect(X, Y + HeaderH - 3f, W, 3f, Lime);
     }
 
@@ -1137,20 +1137,20 @@ public class ObjectPool
         if (menu.Selected >= menu.Scroll + MaxVisible) menu.Scroll = menu.Selected - MaxVisible + 1;
         if (menu.Scroll < 0) menu.Scroll = 0;
 
-        // Intestazione con banner
+        // Header with banner
         DrawBanner();
         float titleX = string.IsNullOrEmpty(Portrait) ? X + W / 2f : X + W / 2f + (HeaderH - 8f) / 2f;
         new GTA.UI.TextElement(menu.Title, new PointF(titleX, Y + 8f), 1.25f, Color.White,
                                GTA.UI.Font.Pricedown, GTA.UI.Alignment.Center, true, true).Draw();
 
-        // Sottotitolo
+        // Subtitle
         float y = Y + HeaderH;
         Rect(X, y, W, SubH, Panel);
         Text(menu.Subtitle.ToUpper(), X + 8f, y + 1f, 0.45f, Lime, GTA.UI.Alignment.Left);
         Text((n == 0 ? 0 : menu.Selected + 1) + " / " + n, X + W - 8f, y + 1f, 0.45f, Lime, GTA.UI.Alignment.Right);
         y += SubH;
 
-        // Voci
+        // Items
         int last = Math.Min(n, menu.Scroll + MaxVisible);
         for (int i = menu.Scroll; i < last; i++)
         {
@@ -1164,7 +1164,7 @@ public class ObjectPool
             y += ItemH;
         }
 
-        // Descrizione della voce selezionata
+        // Description of the selected item
         if (n > 0 && !string.IsNullOrEmpty(menu.Items[menu.Selected].Description))
         {
             y += 4f;
@@ -1177,9 +1177,9 @@ public class ObjectPool
             y += 52f;
         }
 
-        // Aiuto comandi
+        // Controls help
         Rect(X, y + 4f, W, 24f, Panel);
-        SmallText("Frecce: muovi/cambia   Invio: ok   Backspace: indietro   F7: chiudi",
+        SmallText("Arrows: move/change   Enter: ok   Backspace: back   F7: close",
                   X + 8f, y + 7f, 0.27f, Color.FromArgb(255, 150, 230, 150));
     }
 }

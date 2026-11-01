@@ -1,0 +1,36 @@
+TEOPARKOUR - mod menu for GTA V (STORY MODE ONLY)
+=================================================
+
+INSTALL
+1. Download these zips and put them in the "download" folder (no need to extract them):
+   - ScriptHookV ............ http://www.dev-c.com/gtav/scripthookv/
+   - ScriptHookVDotNet ...... GTA V Enhanced: https://github.com/Chiheb-Bacha/scripthookvdotnetenhanced/releases
+                              GTA V Legacy:   https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases
+   Make sure ScriptHookV supports the latest game update.
+2. Close GTA V.
+3. Double-click Install.bat, accept the Windows prompt and press "Install".
+
+BATTLEYE (required)
+- Steam: game Properties -> Launch Options -> type  -nobattleye
+- Rockstar Games Launcher: Settings -> untick BattlEye
+
+CONTROLS
+F7 ........................ open/close the menu
+Up/Down arrows ............ scroll
+Left/Right arrows ......... change value (lists, ON/OFF)
+Enter ..................... select
+Backspace ................. back
+F8 ........................ free camera (WASD, mouse, Space/Ctrl, Shift = fast)
+
+MOD ON / MOD OFF
+- Mod OFF.bat: moves the mod files out of the GTA folder (to play online).
+- Mod ON.bat:  puts them back.
+  If your game is not in G:\SteamLibrary\steamapps\common\Grand Theft Auto V Enhanced,
+  open both .bat files with Notepad and fix the "set GTA=" line.
+
+NOTES
+- The menu switches itself off if it detects an online session.
+- After every GTA V update you need the new ScriptHookV version.
+- If you change skin, switch back to the original character before saving or playing missions.
+- Saved positions are stored in GTA V\scripts\MaxMenu_posizioni.txt
+- If the menu does not show up, check ScriptHookVDotNet.log in the GTA V folder.

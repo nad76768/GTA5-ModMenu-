@@ -1,4 +1,4 @@
-# Zip di ScriptHookV / ScriptHookVDotNet: non ridistribuibili
+# ScriptHookV / ScriptHookVDotNet zips: not redistributable
 download/*.zip
 *.log
 *.asi
